@@ -1,4 +1,4 @@
-# app.phar
+# PHP-phar
 Compile your PHP application to .phar file.
 
 1- To create the .phar file run the following command in the linux terminal:
