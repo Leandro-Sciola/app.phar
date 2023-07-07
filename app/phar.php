@@ -68,10 +68,14 @@ function compile($pharFile) {
 }
 
 function get_public_file() {
-    if ($_SERVER['REQUEST_URI'] === '/') {
+    $request = '/';
+    if (isset($_SERVER['REQUEST_URI'])) {
+        $request = $_SERVER['REQUEST_URI'];
+    }
+    if ($request === '/') {
         return false;
     }
-    $file = 'phar://' . APP_NAME . '/' . $_SERVER['REQUEST_URI'];
+    $file = 'phar://' . APP_NAME . "/$request";
     if (file_exists($file)) {
         $type = array(
             'css'   => 'text/css',
@@ -116,9 +120,19 @@ function server($host, $port) {
     if (defined('APP_NAME')) {
         exec("(lsof -Pi :{$port} -sTCP:LISTEN -t >/dev/null) || " .
              "php -S {$host}:{$port} " . APP_NAME);
-        ob_get_clean();
-        get_public_file();
     } else {
         exit;
     }
 }
+
+function debug($status) {
+    if ($status) {
+        error_reporting(E_ALL);
+        ini_set('display_errors', '1');
+    } else {
+        error_reporting(0);
+        ini_set('display_errors', '0');
+    }
+}
+ob_get_clean();
+get_public_file();
