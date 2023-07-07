@@ -29,6 +29,19 @@ function compile($pharFile) {
         // start buffering. Mandatory to modify stub to add shebang
         $phar->startBuffering();
 
+        // Get static files
+        $list = new RecursiveTreeIterator(
+                    new RecursiveDirectoryIterator(__DIR__ . '/static',
+                        RecursiveDirectoryIterator::SKIP_DOTS));
+        foreach($list as $path) {
+            $path = explode('static', $path)[1];
+            $file = __DIR__ . '/static' . $path;
+            if (!is_dir($file)) {
+                $phar[$path] = "<?php echo '" .
+                                file_get_contents($file) . "'; ?>";
+            }
+        }
+
         // Create the default stub from main.php entrypoint
         $defaultStub = $phar->createDefaultStub('index.php');
 
@@ -53,6 +66,10 @@ function compile($pharFile) {
     } catch (Exception $e) {
         echo $e->getMessage();
     }
+}
+
+function include_file($file) {
+    include_once 'phar://' . APP_NAME . "/$file";
 }
 
 function server($host, $port) {
