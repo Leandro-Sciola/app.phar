@@ -31,14 +31,13 @@ function compile($pharFile) {
 
         // Get static files
         $list = new RecursiveTreeIterator(
-                    new RecursiveDirectoryIterator(__DIR__ . '/static',
+                    new RecursiveDirectoryIterator(__DIR__ . '/public',
                         RecursiveDirectoryIterator::SKIP_DOTS));
         foreach($list as $path) {
-            $path = explode('static', $path)[1];
-            $file = __DIR__ . '/static' . $path;
+            $path = explode('public', $path)[1];
+            $file = __DIR__ . '/public' . $path;
             if (!is_dir($file)) {
-                $phar[$path] = "<?php echo '" .
-                                file_get_contents($file) . "'; ?>";
+                $phar[$path] = file_get_contents($file);
             }
         }
 
@@ -68,8 +67,49 @@ function compile($pharFile) {
     }
 }
 
-function include_file($file) {
-    include_once 'phar://' . APP_NAME . "/$file";
+function get_public_file() {
+    if ($_SERVER['REQUEST_URI'] === '/') {
+        return false;
+    }
+    $file = 'phar://' . APP_NAME . '/' . $_SERVER['REQUEST_URI'];
+    if (file_exists($file)) {
+        $type = array(
+            'css'   => 'text/css',
+            'js'    => 'application/javascript',
+            'json'  => 'application/json',
+            'xml'   => 'application/xml',
+            'txt'   => 'text/plain',
+            'html'  => 'text/html',
+            'ttf'   => 'application/x-font-ttf',
+            'woff'  => 'application/font-woff',
+            'woff2' => 'application/font-woff2',
+            'png'   => 'image/png',
+            'jpe'   => 'image/jpeg',
+            'jpeg'  => 'image/jpeg',
+            'jpg'   => 'image/jpeg',
+            'gif'   => 'image/gif',
+            'bmp'   => 'image/bmp',
+            'ico'   => 'image/vnd.microsoft.icon',
+            'tiff'  => 'image/tiff',
+            'tif'   => 'image/tiff',
+            'svg'   => 'image/svg+xml',
+            'svgz'  => 'image/svg+xml',
+            'zip'   => 'application/zip',
+            'pdf'   => 'application/pdf',
+            'mp3'   => 'audio/mpeg'
+        );
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        header("Content-Type: {$type[$ext]}; charset=utf-8");
+        include_once $file;
+    } else {
+        header("Content-Type: text/html; charset=utf-8");
+        echo '<!DOCTYPE html><html><head><title>404 - Not found</title>',
+             '</head><body><h1 style="background: #ccc; padding: 25px">',
+             'HTTP Status - 404 - Not found</h1><p>The requested URL ',
+             'was not found on this server.</p><hr><address>' .
+             $_SERVER['REQUEST_URI'] . '</address></body></html>';
+    }
+    exit;
 }
 
 function server($host, $port) {
@@ -77,6 +117,7 @@ function server($host, $port) {
         exec("(lsof -Pi :{$port} -sTCP:LISTEN -t >/dev/null) || " .
              "php -S {$host}:{$port} " . APP_NAME);
         ob_get_clean();
+        get_public_file();
     } else {
         exit;
     }
