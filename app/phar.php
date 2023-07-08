@@ -17,7 +17,7 @@ if (!pathinfo(basename(__DIR__), PATHINFO_EXTENSION)) {
 function php_ini() {
     $list = parse_ini_file('php.ini', true)['PHP'];
     foreach ($list as $key => $value) {
-        if (!str_contains($key, '#')) {
+        if (!str_contains($key, '#') || !str_contains($key, ';')) {
             ini_set($key, $value);
         }
     }
@@ -131,12 +131,13 @@ function server($host, $port) {
     if (defined('APP_NAME')) {
         shell_exec("(lsof -Pi :{$port} -sTCP:LISTEN -t >/dev/null) || " .
                    "php -q -S {$host}:{$port} " . APP_NAME);
+        debug(true);
     } else {
         exit;
     }
 }
 
-function debug($status) {
+function debug($status = false) {
     if ($status) {
         error_reporting(E_ALL);
         ini_set('display_errors', '1');
