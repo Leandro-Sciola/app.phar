@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+include_once 'vendor/autoload.php';
+
 if (!pathinfo(basename(__DIR__), PATHINFO_EXTENSION)) {
     if (!isset($argv[1])) {
         echo shell_exec('php --define phar.readonly=0 ' . __DIR__ .
@@ -10,6 +12,15 @@ if (!pathinfo(basename(__DIR__), PATHINFO_EXTENSION)) {
     }
 } else {
     define('APP_NAME', basename(__DIR__));
+}
+
+function php_ini() {
+    $list = parse_ini_file('php.ini', true)['PHP'];
+    foreach ($list as $key => $value) {
+        if (!str_contains($key, '#')) {
+            ini_set($key, $value);
+        }
+    }
 }
 
 function compile($pharFile) {
@@ -118,8 +129,8 @@ function get_public_file() {
 
 function server($host, $port) {
     if (defined('APP_NAME')) {
-        exec("(lsof -Pi :{$port} -sTCP:LISTEN -t >/dev/null) || " .
-             "php -S {$host}:{$port} " . APP_NAME);
+        shell_exec("(lsof -Pi :{$port} -sTCP:LISTEN -t >/dev/null) || " .
+                   "php -q -S {$host}:{$port} " . APP_NAME);
     } else {
         exit;
     }
@@ -134,5 +145,6 @@ function debug($status) {
         ini_set('display_errors', '0');
     }
 }
+php_ini();
 ob_get_clean();
 get_public_file();
