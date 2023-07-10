@@ -45,16 +45,20 @@ class File
      */
     public static function getStaticFile($path) : void
     {
-        $type = self::getMimeType(pathinfo($path, PATHINFO_EXTENSION));
-        self::serveStaticFile($path, array(
-            'headers' => array(
-                'Content-Type'  => $type,
-                'Cache-Control' => 'public, max-age=604800',
-                'Expires'       => gmdate('D, d M Y H:i:s',
-                                          time() + 30 * 86400) . ' GMT'
-            )
-        ));
-        exit;
+        if (pathinfo($path, PATHINFO_EXTENSION) === 'php') {
+            include_once $path;
+        } else {
+            $type = self::getMimeType(pathinfo($path, PATHINFO_EXTENSION));
+            self::serveStaticFile($path, array(
+                'headers' => array(
+                    'Content-Type'  => $type,
+                    'Cache-Control' => 'public, max-age=604800',
+                    'Expires'       => gmdate('D, d M Y H:i:s',
+                                              time() + 30 * 86400) . ' GMT'
+                )
+            ));
+            exit;
+        }
     }
 
     /**
