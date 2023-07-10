@@ -1,16 +1,8 @@
 <?php
-/*
-| ------------------------------------------------------------------------------
-| Application startup.
-| ------------------------------------------------------------------------------
-*/
-include_once 'phar.php';
-/*
-| ------------------------------------------------------------------------------
-| Web server for development.
-| ------------------------------------------------------------------------------
-*/
-server('localhost', 8000);
+
+include_once 'vendor/autoload.php';
+Core\Settings::init(__DIR__);
+Core\Dev::server('localhost', 8000); // In production remove this line
 ?>
 <!DOCTYPE html>
 <html>
